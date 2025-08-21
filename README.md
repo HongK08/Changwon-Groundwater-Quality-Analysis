@@ -2,9 +2,8 @@
 
 \<p align="center"\>
 \<img src="[https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge\&logo=python](https://www.google.com/search?q=https://img.shields.io/badge/Python-3.9%252B-blue%3Fstyle%3Dfor-the-badge%26logo%3Dpython)" alt="Python Version"\>
-\<img src="[https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=for-the-badge\&logo=tensorflow](https://www.google.com/search?q=https://img.shields.io/badge/TensorFlow-2.x-FF6F00%3Fstyle%3Dfor-the-badge%26logo%3Dtensorflow)" alt="TensorFlow"\>
-\<img src="[https://img.shields.io/badge/Pandas-2.0-blue?style=for-the-badge\&logo=pandas](https://www.google.com/search?q=https://img.shields.io/badge/Pandas-2.0-blue%3Fstyle%3Dfor-the-badge%26logo%3Dpandas)" alt="Pandas"\>
-\<img src="[https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge](https://www.google.com/search?q=https://img.shields.io/badge/License-MIT-yellow.svg%3Fstyle%3Dfor-the-badge)" alt="License: MIT"\>
+\<img src="[https://img.shields.io/badge/Status-In%20Progress-green?style=for-the-badge](https://www.google.com/search?q=https://img.shields.io/badge/Status-In%2520Progress-green%3Fstyle%3Dfor-the-badge)" alt="Status"\>
+\<img src="[https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge](https://www.google.com/search?q=https://img.shields.io/badge/License-Private-lightgrey%3Fstyle%3Dfor-the-badge)" alt="License: Private"\>
 \</p\>
 
 > Spatiotemporal analysis and forecasting of groundwater quality for the Daegu National Industrial Complex using AI models.
@@ -15,11 +14,15 @@ This project aims to analyze and predict the groundwater quality within the Daeg
 
 ## Table of Contents
 
+  - [Dataset](https://www.google.com/search?q=%23-dataset)
   - [Methodology](https://www.google.com/search?q=%23-methodology)
-  - [Sensor Network](https://www.google.com/search?q=%23-sensor-network)
-  - [Installation](https://www.google.com/search?q=%23-installation)
-  - [Usage](https://www.google.com/search?q=%23-usage)
-  - [Results](https://www.google.com/search?q=%23-results)
+  - [Sensor-Network](https://www.google.com/search?q=%23-sensor-network)
+
+\<br\>
+
+## Dataset
+
+The dataset used in this study is confidential and not publicly available. It is comprised of time-series data from monitoring wells managed by the National Groundwater Information Center (GIMS).
 
 \<br\>
 
@@ -54,42 +57,3 @@ The following three monitoring wells were selected to form the triangulation net
 ### Triangulation Network Visualization
 
 The image below illustrates the final configuration of the sensor network relative to the Daegu National Industrial Complex.
-
-\<br\>
-
-## Installation
-
-*(Provide instructions on how to set up the project environment. Example below)*
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/Daegu-Groundwater-Quality-Analysis.git
-cd Daegu-Groundwater-Quality-Analysis
-
-# Create a virtual environment and install dependencies
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-\<br\>
-
-## Usage
-
-*(Provide instructions on how to run the code. Example below)*
-
-```bash
-# To run the data preprocessing script
-python src/preprocess_data.py
-
-# To train a model
-python src/train_model.py --model N-BEATSx --epochs 100
-```
-
-\<br\>
-
-## Results
-
-*(Summarize the key findings or link to a more detailed report.)*
-
-The comparative analysis demonstrates that the `[Best Model Name]` achieved the highest performance with an RMSE of `[value]` and an R² of `[value]`. Detailed results and visualizations can be found in the `reports/` directory.
