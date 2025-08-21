@@ -1,7 +1,3 @@
-네, 알겠습니다. 프로젝트의 비공개 특성을 반영하여 `Installation`, `Usage` 등 개발 관련 섹션을 모두 제거하고, 데이터셋이 비공개라는 점을 명시하는 내용으로 README를 수정했습니다.
-
------
-
 # Daegu-Groundwater-Quality-Analysis
 
 <p align="center">
