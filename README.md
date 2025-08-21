@@ -13,7 +13,7 @@
 
 This project aims to analyze and predict the groundwater quality within the Daegu National Industrial Complex by leveraging spatiotemporal data from a strategically selected sensor network. Various deep learning models are implemented and compared to build a robust forecasting system.
 
-\<br\>
+
 
 ## Table of Contents
 
@@ -21,13 +21,13 @@ This project aims to analyze and predict the groundwater quality within the Daeg
   - [Methodology](https://www.google.com/search?q=%23-methodology)
   - [Sensor-Network](https://www.google.com/search?q=%23-sensor-network)
 
-\<br\>
+
 
 ## Dataset
 
 The dataset used in this study is confidential and not publicly available. It is comprised of time-series data from monitoring wells managed by the National Groundwater Information Center (GIMS).
 
-\<br\>
+
 
 ## Methodology
 
@@ -45,7 +45,7 @@ The core of this research lies in establishing a scientifically sound monitoring
   - **Groundwater Flow Estimation:** The network provides the necessary data to estimate groundwater flow direction, which is critical for tracking contaminant movement.
   - **Enhanced Model Input:** Spatially distributed data enriches the input for AI models, allowing them to learn complex spatial patterns and improving predictive performance.
 
-\<br\>
+
 
 ## Sensor Network
 
@@ -60,3 +60,4 @@ The following three monitoring wells were selected to form the triangulation net
 ### Triangulation Network Visualization
 
 The image below illustrates the final configuration of the sensor network relative to the Daegu National Industrial Complex.
+<img width="800" height="800" alt="image" src="https://github.com/user-attachments/assets/67fdfb2b-491c-4681-98bc-deec8f5a7db8" />
