@@ -52,3 +52,4 @@ The following three monitoring wells were selected to form the triangulation net
 ### Triangulation Network Visualization
 
 The image below illustrates the final configuration of the sensor network relative to the Daegu National Industrial Complex.
+<img width="800" height="800" alt="image" src="https://github.com/user-attachments/assets/c95a56c7-34e8-44c8-b92d-6d1ec3cb107c" />
