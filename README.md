@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Status-In%20Progress-green?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge" alt="License: Private">
 </p>
-> Spatiotemporal analysis and forecasting of groundwater quality for the Daegu National Industrial Complex using AI models.
+Spatiotemporal analysis and forecasting of groundwater quality for the Daegu National Industrial Complex using AI models.
 
 This project aims to analyze and predict the groundwater quality within the Daegu National Industrial Complex by leveraging spatiotemporal data from a strategically selected sensor network. Various deep learning models are implemented and compared to build a robust forecasting system.
 
