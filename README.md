@@ -9,25 +9,19 @@
 
 This project aims to analyze and predict the groundwater quality within the Daegu National Industrial Complex by leveraging spatiotemporal data from a strategically selected sensor network. Various deep learning models are implemented and compared to build a robust forecasting system.
 
-\<br\>
 
-## Table of Contents
-
-  - [Dataset](https://www.google.com/search?q=%23-dataset)
-  - [Methodology](https://www.google.com/search?q=%23-methodology)
-  - [Sensor-Network](https://www.google.com/search?q=%23-sensor-network)
-
-\<br\>
 
 ## Dataset
 
 The dataset used in this study is confidential and not publicly available. It is comprised of time-series data from monitoring wells managed by the National Groundwater Information Center (GIMS).
 
-\<br\>
+
 
 ## Methodology
 
 The core of this research lies in establishing a scientifically sound monitoring network to ensure the quality and representativeness of the data used for AI modeling. The selection process was guided by two primary principles:
+
+
 
 #### 1\. General Rationale
 
@@ -35,13 +29,15 @@ The core of this research lies in establishing a scientifically sound monitoring
   - **Relevance to Objective:** The wells are located within and around the industrial complex, maximizing sensitivity to changes caused by industrial activities.
   - **Data Availability:** Wells with sufficient and reliable historical data were chosen to facilitate robust time-series analysis and model training.
 
+
+
 #### 2\. Triangulation Configuration
 
   - **Spatial Representativeness:** A triangular formation was used to effectively encompass the target area, reducing spatial bias and enabling a more generalized analysis.
   - **Groundwater Flow Estimation:** The network provides the necessary data to estimate groundwater flow direction, which is critical for tracking contaminant movement.
   - **Enhanced Model Input:** Spatially distributed data enriches the input for AI models, allowing them to learn complex spatial patterns and improving predictive performance.
 
-\<br\>
+
 
 ## Sensor Network
 
