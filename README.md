@@ -89,4 +89,25 @@ Three alluvial wells in Changwon were selected:
 - `Changwon_Alluvial_3sites_inner_merge.csv` — Merged dataset (32,592 rows × 10 cols)  
 - `Changwon_Alluvial_merge_audit.csv` — Audit log (drop counts + timestamp samples)  
 
-### File Organization
+## File Organization
+
+```bash
+/home/hai/Desktop/UML/
+├── data/
+│   ├── raw/                          # Original GIMS CSVs (user provided)
+│   │   ├── Changwon_Seongsan_Alluvial.csv
+│   │   ├── Changwon_Sinchon_Alluvial.csv
+│   │   └── Changwon_Cheonseon_Alluvial.csv
+│   │
+│   └── processed/                    # Processed outputs (merge + audit)
+│       ├── Changwon_Alluvial_3sites_inner_merge.csv
+│       └── Changwon_Alluvial_merge_audit.csv
+│
+├── notebooks/
+│   └── 01_merge_audit.ipynb          # Reproducible Jupyter notebook
+│
+├── scripts/
+│   └── merge_alluvial.py             # Python script for merging
+│
+└── README.md                         # Project documentation
+
