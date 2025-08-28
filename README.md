@@ -67,6 +67,13 @@ Three alluvial wells in Changwon were selected:
 
 ## Preprocessing & Merge
 
+The inner-merge and audit log generation were performed using:
+
+- `scripts/merge_alluvial.py`
+
+This script loads the three raw CSV files from `data/raw/`, performs an inner join on `timestamp`, 
+and saves both the merged dataset and an audit log into `data/processed/`.
+
 ### Merge Results
 - **Original Rows**  
   - Seongsan: 32,603  
