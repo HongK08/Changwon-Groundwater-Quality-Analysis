@@ -7,10 +7,10 @@
 </p>
 
 > Spatiotemporal analysis of groundwater quality in **Changwon Alluvial Aquifer**  
-> Focused on water level, temperature, and electrical conductivity (EC).
+> Focused on water level, temperature, and electrical conductivity (EC / EC25).
 
 This project investigates groundwater dynamics in the Changwon region using hourly monitoring data.  
-We preprocess, audit, and merge multiple well datasets to enable comparative analysis and AI-based modeling.
+We preprocess, audit, and merge multiple well datasets, incorporating DEM-derived depth and temperature-corrected EC (EC25), to enable comparative analysis and AI-based modeling.
 
 ---
 
@@ -19,6 +19,8 @@ We preprocess, audit, and merge multiple well datasets to enable comparative ana
 - [Methodology](#methodology)
 - [Monitoring-Wells](#monitoring-wells)
 - [Preprocessing--Merge](#preprocessing--merge)
+- [Feature Engineering](#feature-engineering)
+- [File Organization](#file-organization)
 
 ---
 
@@ -29,9 +31,12 @@ It includes **hourly time-series data** of:
 
 - Water Level (m)
 - Water Temperature (°C)
-- Electrical Conductivity (µS/cm)
+- Electrical Conductivity (µS/cm, raw sensor value)
+- Depth (m, derived from DEM `.img` files)
+- EC25 (µS/cm, normalized to 25 °C)
 
-Period covered: **2021–2025** (continuous monitoring).
+Period covered: **2021–2025** (continuous monitoring).  
+Total merged records: **32,592 hourly observations**.
 
 ---
 
@@ -41,7 +46,7 @@ The analysis emphasizes **data integrity and transparency**:
 
 1. **No Interpolation**  
    - All analyses are based on observed values only.  
-   - Missing timestamps are removed rather than filled.
+   - Missing timestamps are dropped rather than filled.
 
 2. **Inner Join Merge**  
    - Datasets from multiple wells are merged only on **common timestamps**.  
@@ -49,7 +54,14 @@ The analysis emphasizes **data integrity and transparency**:
 
 3. **Audit Logging**  
    - Any timestamps dropped during merging are logged for reproducibility.  
-   - Drop counts and examples are provided per well.
+   - Drop counts and sample timestamps are recorded per well.
+
+4. **Depth Extraction (DEM)**  
+   - Groundwater depth values (`Depth_Seongsan_m`, `Depth_Sinchon_m`, `Depth_Cheonseon_m`) are derived from DEM `.img` rasters.  
+
+5. **Temperature Correction (EC → EC25)**  
+   - Raw EC is corrected to 25 °C using the standard EC-25 formula.  
+   - Both raw EC and EC25 are preserved in the dataset for modeling and comparison.
 
 ---
 
@@ -67,12 +79,12 @@ Three alluvial wells in Changwon were selected:
 
 ## Preprocessing & Merge
 
-The inner-merge and audit log generation were performed using:
+The merge and audit log generation were performed using:
 
 - `scripts/merge_alluvial.py`
 
-This script loads the three raw CSV files from `data/raw/`, performs an inner join on `timestamp`, 
-and saves both the merged dataset and an audit log into `data/processed/`.
+This script loads the three raw CSV files from `data/raw/`, performs an inner join on `timestamp`,  
+applies DEM-based depth extraction and EC25 correction, and saves both the merged dataset and an audit log into `data/processed/`.
 
 ### Merge Results
 - **Original Rows**  
@@ -93,28 +105,54 @@ and saves both the merged dataset and an audit log into `data/processed/`.
 - Cheonseon: `2021-12-07 16:00`, `2024-08-01 11:00` …
 
 ### Output Files
-- `Changwon_Alluvial_3sites_inner_merge.csv` — Merged dataset (32,592 rows × 10 cols)  
+- `Changwon_Alluvial_with_depth_ec25.csv` — Merged dataset (**32,592 rows × 16 cols**)  
 - `Changwon_Alluvial_merge_audit.csv` — Audit log (drop counts + timestamp samples)  
+
+---
+
+## Feature Engineering
+
+For modeling and interpretation, we include:
+
+- **Raw values**: EC, Water Temperature, Water Level  
+- **Corrected values**: EC25 (temperature normalized)  
+- **DEM-derived values**: Depth (per well)  
+- **Derived features** (optional):  
+  - ΔEC = EC25 – EC (magnitude of correction)  
+  - Ratios such as EC25/Temp, EC/Level for correlation studies  
+
+This ensures both physical interpretability and robust predictive modeling.
+
+---
 
 ## File Organization
 
 ```bash
-/home/hai/Desktop/UML/
-├── data/
-│   ├── raw/                          # Original GIMS CSVs (user provided)
-│   │   ├── Changwon_Seongsan_Alluvial.csv
-│   │   ├── Changwon_Sinchon_Alluvial.csv
-│   │   └── Changwon_Cheonseon_Alluvial.csv
+~/Desktop/UML_Changwon
+├── CODE
+│   ├── Crawler.py
+│   ├── DEM_Import.py
+│   ├── merge_alluvial.py
+│   └── merge_Dep_and_EC25.py
+│
+├── DATA_SET
+│   ├── FINAL_DATA
+│   │   └── Changwon_Alluvial_with_depth_ec25.csv
 │   │
-│   └── processed/                    # Processed outputs (merge + audit)
-│       ├── Changwon_Alluvial_3sites_inner_merge.csv
-│       └── Changwon_Alluvial_merge_audit.csv
+│   ├── Original_Merged
+│   │   ├── Changwon_Alluvial_3sites_inner_merge.csv
+│   │   └── Changwon_Alluvial_merge_audit.csv
+│   │
+│   ├── RAW_DATA
+│   │   ├── Changwon_Cheonseon_Alluvial.csv
+│   │   ├── Changwon_Seongsan_Alluvial.csv
+│   │   └── Changwon_Sinchon_Alluvial.csv
+│   │
+│   └── SITE_ELEVATIONS
+│       └── Changwon_site_elevations.csv
 │
-├── notebooks/
-│   └── 01_merge_audit.ipynb          # Reproducible Jupyter notebook
-│
-├── scripts/
-│   └── merge_alluvial.py             # Python script for merging
-│
-└── README.md                         # Project documentation
+└── EDM
+    ├── 창원성산.img
+    ├── 창원신촌.img
+    └── 창원천선.img
 
