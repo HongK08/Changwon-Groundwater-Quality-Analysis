@@ -1,158 +1,331 @@
-# Changwon-Groundwater-Quality-Analysis
+# Changwon Groundwater Quality Analysis & Forecasting
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python" alt="Python Version">
-  <img src="https://img.shields.io/badge/Status-In%20Progress-green?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge" alt="License: Private">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python" alt="Python Version">
+  <img src="https://img.shields.io/badge/Status-Completed-blue?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge" alt="License: Private">
 </p>
 
-> Spatiotemporal analysis of groundwater quality in **Changwon Alluvial Aquifer**  
-> Focused on water level, temperature, and electrical conductivity (EC / EC25).
+> Spatiotemporal analysis and AI-driven forecasting of groundwater quality in the **Changwon Alluvial Aquifer**. This project focuses on modeling water level, temperature, and electrical conductivity (EC) to understand and predict groundwater dynamics.
 
-This project investigates groundwater dynamics in the Changwon region using hourly monitoring data.  
-We preprocess, audit, and merge multiple well datasets, incorporating DEM-derived depth and temperature-corrected EC (EC25), to enable comparative analysis and AI-based modeling.
+This repository contains the complete pipeline for analyzing groundwater dynamics in the Changwon region. We process raw hourly monitoring data, correct sensor errors, handle data gaps through interpolation, and enrich the dataset with geospatial (DEM) and engineered features. The final, cleaned dataset serves as the foundation for building predictive AI models.
 
 ---
 
 ## Table of Contents
 - [Dataset](#dataset)
 - [Methodology](#methodology)
-- [Monitoring-Wells](#monitoring-wells)
-- [Preprocessing--Merge](#preprocessing--merge)
-- [Feature Engineering](#feature-engineering)
+- [Monitoring Wells](#monitoring-wells)
+- [Preprocessing & Feature Engineering](#preprocessing--feature-engineering)
+- [AI Modeling](#ai-modeling)
 - [File Organization](#file-organization)
 
 ---
 
 ## Dataset
 
-The dataset is obtained from the **National Groundwater Information Center (GIMS)**.  
-It includes **hourly time-series data** of:
+The dataset is sourced from the **National Groundwater Information Center (GIMS)** and consists of hourly time-series data from three alluvial wells in Changwon.
 
-- Water Level (m)
-- Water Temperature (°C)
-- Electrical Conductivity (µS/cm, raw sensor value)
-- Depth (m, derived from DEM `.img` files)
-- EC25 (µS/cm, normalized to 25 °C)
-
-Period covered: **2021–2025** (continuous monitoring).  
-Total merged records: **32,592 hourly observations**.
+- **Primary Variables**:
+    - Water Level (m)
+    - Water Temperature (°C)
+    - Electrical Conductivity (EC, µS/cm)
+- **Data Period**: **2021–2025** (continuous monitoring)
+- **Final Dataset**: **32,673 hourly observations** after cleaning and interpolation.
 
 ---
 
 ## Methodology
 
-The analysis emphasizes **data integrity and transparency**:
+The core of this project is the creation of a **continuous, high-integrity dataset** suitable for time-series modeling. The methodology was evolved from a simple `inner join` to a more robust `outer join` and interpolation approach.
 
-1. **No Interpolation**  
-   - All analyses are based on observed values only.  
-   - Missing timestamps are dropped rather than filled.
+1.  **Data Integration via `Outer Join`**: Datasets from the three wells are merged using an `outer join` on the `timestamp`. This creates a complete time index that preserves every observation from all wells, preventing data loss.
 
-2. **Inner Join Merge**  
-   - Datasets from multiple wells are merged only on **common timestamps**.  
-   - This ensures that every record represents simultaneous observations across wells.
+2.  **Error Correction & Linear Interpolation**:
+    - **Error Identification**: Non-physical values (e.g., `EC = 0`) are identified as sensor errors and explicitly marked as missing data (`NaN`).
+    - **Interpolation**: All missing data points—both from the outer join and the identified errors—are filled using **Linear Interpolation**. This method is chosen for its scientific validity in representing the gradual changes typical of groundwater systems.
 
-3. **Audit Logging**  
-   - Any timestamps dropped during merging are logged for reproducibility.  
-   - Drop counts and sample timestamps are recorded per well.
-
-4. **Depth Extraction (DEM)**  
-   - Groundwater depth values (`Depth_Seongsan_m`, `Depth_Sinchon_m`, `Depth_Cheonseon_m`) are derived from DEM `.img` rasters.  
-
-5. **Temperature Correction (EC → EC25)**  
-   - Raw EC is corrected to 25 °C using the standard EC-25 formula.  
-   - Both raw EC and EC25 are preserved in the dataset for modeling and comparison.
+3.  **Reproducibility**: The entire preprocessing pipeline is codified in `UQML_Changwon/CODE/Get_Data/FIN_DATA_IMP.py`, ensuring a fully reproducible workflow from raw data to the final model-ready dataset.
 
 ---
 
 ## Monitoring Wells
 
-Three alluvial wells in Changwon were selected:
+Three key alluvial wells in Changwon provide the data for this study:
 
-| No. | Well Name   | Aquifer Type | Role in Analysis              |
-|:---:|:------------|:-------------|:------------------------------|
-| 1   | Seongsan    | Alluvial     | Regional representative well  |
-| 2   | Sinchon     | Alluvial     | Boundary monitoring           |
-| 3   | Cheonseon   | Alluvial     | Event-sensitive observation   |
-
----
-
-## Preprocessing & Merge
-
-The merge and audit log generation were performed using:
-
-- `scripts/merge_alluvial.py`
-
-This script loads the three raw CSV files from `data/raw/`, performs an inner join on `timestamp`,  
-applies DEM-based depth extraction and EC25 correction, and saves both the merged dataset and an audit log into `data/processed/`.
-
-### Merge Results
-- **Original Rows**  
-  - Seongsan: 32,603  
-  - Sinchon: 32,606  
-  - Cheonseon: 32,623  
-
-- **Final Common Timestamps (inner join):** **32,592**
-
-- **Dropped Records**  
-  - Seongsan → 11 (0.03%)  
-  - Sinchon → 14 (0.04%)  
-  - Cheonseon → 31 (0.09%)
-
-### Example of Dropped Timestamps
-- Seongsan: `2022-08-22 10:00`, `2023-08-24 11:00` …  
-- Sinchon: `2023-05-24 12:00`, `2024-01-01 13:00` …  
-- Cheonseon: `2021-12-07 16:00`, `2024-08-01 11:00` …
-
-### Output Files
-- `Changwon_Alluvial_with_depth_ec25.csv` — Merged dataset (**32,592 rows × 16 cols**)  
-- `Changwon_Alluvial_merge_audit.csv` — Audit log (drop counts + timestamp samples)  
+| No. | Well Name | Aquifer Type | Role in Analysis | Ground Elevation (m) |
+|:---:|:---|:---|:---|:---:|
+| 1 | **Seongsan** | Alluvial | Regional representative well | 20.57 |
+| 2 | **Sinchon** | Alluvial | Boundary monitoring | 7.84 |
+| 3 | **Cheonseon** | Alluvial | Event-sensitive observation | 48.03 |
 
 ---
 
-## Feature Engineering
+## Preprocessing & Feature Engineering
 
-For modeling and interpretation, we include:
+The raw data is transformed into a feature-rich dataset ready for advanced modeling.
 
-- **Raw values**: EC, Water Temperature, Water Level  
-- **Corrected values**: EC25 (temperature normalized)  
-- **DEM-derived values**: Depth (per well)  
-- **Derived features** (optional):  
-  - ΔEC = EC25 – EC (magnitude of correction)  
-  - Ratios such as EC25/Temp, EC/Level for correlation studies  
+### Preprocessing Pipeline
+The `FIN_DATA_IMP.py` script automates the following:
+1.  **Loads** raw CSV files from `UQML_Changwon/DATA_SET/RAW_DATA/`.
+2.  **Merges** the data using an outer join and converts `0` values to `NaN`.
+3.  **Reindexes** the data to a perfect hourly frequency.
+4.  **Applies linear interpolation** to fill all gaps.
+5.  **Executes feature engineering** steps and saves the final dataset.
 
-This ensures both physical interpretability and robust predictive modeling.
+### Engineered Features
+To enhance the model's predictive power, several key features were engineered:
+
+- **Temperature-Corrected EC (EC25)**: Raw EC is normalized to 25°C to remove temperature bias, providing a more stable indicator of water quality.
+- **DEM-Derived Elevation**: The ground elevation for each well is added as a **static feature**, allowing the model to learn location-specific patterns.
+- **Volatility Metrics**: To capture sudden changes—a key indicator of external events—the following are calculated:
+    - **Rate of Change (EC\_RoC)**: The difference in EC from the previous hour.
+    - **Rolling Standard Deviation (EC\_Std6H)**: The EC's standard deviation over a 6-hour window.
+
+### Final Output File
+- **`Changwon_Preprocessed_with_Features.csv`**: The final, model-ready dataset (**32,673 rows × 22 cols**).
+
+---
+
+## AI Modeling
+The cleaned and feature-engineered dataset is used to train a predictive LSTM model.
+
+- **Model Code**: `UQML_Changwon/CODE/Models/LSTM.py`
+- **Key Capabilities**:
+    - **Feature-Mode Switching**: Allows training with different feature sets (e.g., `ec25_only`, `all_features`).
+    - **Early Stopping**: Prevents model overfitting by monitoring validation loss and saving the best-performing model.
+    - **Automated Reporting**: Automatically generates performance metrics, heatmaps, and plots for each training run.
+- **Results**: All model outputs, including predictions and reports, are saved under `Model_Res/LSTM/<feature_mode>/`.
 
 ---
 
 ## File Organization
+# Changwon Groundwater Quality Analysis & Forecasting
 
-```bash
-~/Desktop/UML_Changwon
-├── CODE
-│   ├── Crawler.py
-│   ├── DEM_Import.py
-│   ├── merge_alluvial.py
-│   └── merge_Dep_and_EC25.py
-│
-├── DATA_SET
-│   ├── FINAL_DATA
-│   │   └── Changwon_Alluvial_with_depth_ec25.csv
-│   │
-│   ├── Original_Merged
-│   │   ├── Changwon_Alluvial_3sites_inner_merge.csv
-│   │   └── Changwon_Alluvial_merge_audit.csv
-│   │
-│   ├── RAW_DATA
-│   │   ├── Changwon_Cheonseon_Alluvial.csv
-│   │   ├── Changwon_Seongsan_Alluvial.csv
-│   │   └── Changwon_Sinchon_Alluvial.csv
-│   │
-│   └── SITE_ELEVATIONS
-│       └── Changwon_site_elevations.csv
-│
-└── EDM
-    ├── 창원성산.img
-    ├── 창원신촌.img
-    └── 창원천선.img
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python" alt="Python Version">
+  <img src="https://img.shields.io/badge/Status-Completed-blue?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge" alt="License: Private">
+</p>
 
+> Spatiotemporal analysis and AI-driven forecasting of groundwater quality in the **Changwon Alluvial Aquifer**. This project focuses on modeling water level, temperature, and electrical conductivity (EC) to understand and predict groundwater dynamics.
+
+This repository contains the complete pipeline for analyzing groundwater dynamics in the Changwon region. We process raw hourly monitoring data, correct sensor errors, handle data gaps through interpolation, and enrich the dataset with geospatial (DEM) and engineered features. The final, cleaned dataset serves as the foundation for building predictive AI models.
+
+---
+
+## Table of Contents
+- [Dataset](#dataset)
+- [Methodology](#methodology)
+- [Monitoring Wells](#monitoring-wells)
+- [Preprocessing & Feature Engineering](#preprocessing--feature-engineering)
+- [AI Modeling](#ai-modeling)
+- [File Organization](#file-organization)
+
+---
+
+## Dataset
+
+The dataset is sourced from the **National Groundwater Information Center (GIMS)** and consists of hourly time-series data from three alluvial wells in Changwon.
+
+- **Primary Variables**:
+    - Water Level (m)
+    - Water Temperature (°C)
+    - Electrical Conductivity (EC, µS/cm)
+- **Data Period**: **2021–2025** (continuous monitoring)
+- **Final Dataset**: **32,673 hourly observations** after cleaning and interpolation.
+
+---
+
+## Methodology
+
+The core of this project is the creation of a **continuous, high-integrity dataset** suitable for time-series modeling. The methodology was evolved from a simple `inner join` to a more robust `outer join` and interpolation approach.
+
+1.  **Data Integration via `Outer Join`**: Datasets from the three wells are merged using an `outer join` on the `timestamp`. This creates a complete time index that preserves every observation from all wells, preventing data loss.
+
+2.  **Error Correction & Linear Interpolation**:
+    - **Error Identification**: Non-physical values (e.g., `EC = 0`) are identified as sensor errors and explicitly marked as missing data (`NaN`).
+    - **Interpolation**: All missing data points—both from the outer join and the identified errors—are filled using **Linear Interpolation**. This method is chosen for its scientific validity in representing the gradual changes typical of groundwater systems.
+
+3.  **Reproducibility**: The entire preprocessing pipeline is codified in `UQML_Changwon/CODE/Get_Data/FIN_DATA_IMP.py`, ensuring a fully reproducible workflow from raw data to the final model-ready dataset.
+
+---
+
+## Monitoring Wells
+
+Three key alluvial wells in Changwon provide the data for this study:
+
+| No. | Well Name | Aquifer Type | Role in Analysis | Ground Elevation (m) |
+|:---:|:---|:---|:---|:---:|
+| 1 | **Seongsan** | Alluvial | Regional representative well | 20.57 |
+| 2 | **Sinchon** | Alluvial | Boundary monitoring | 7.84 |
+| 3 | **Cheonseon** | Alluvial | Event-sensitive observation | 48.03 |
+
+---
+
+## Preprocessing & Feature Engineering
+
+The raw data is transformed into a feature-rich dataset ready for advanced modeling.
+
+### Preprocessing Pipeline
+The `FIN_DATA_IMP.py` script automates the following:
+1.  **Loads** raw CSV files from `UQML_Changwon/DATA_SET/RAW_DATA/`.
+2.  **Merges** the data using an outer join and converts `0` values to `NaN`.
+3.  **Reindexes** the data to a perfect hourly frequency.
+4.  **Applies linear interpolation** to fill all gaps.
+5.  **Executes feature engineering** steps and saves the final dataset.
+
+### Engineered Features
+To enhance the model's predictive power, several key features were engineered:
+
+- **Temperature-Corrected EC (EC25)**: Raw EC is normalized to 25°C to remove temperature bias, providing a more stable indicator of water quality.
+- **DEM-Derived Elevation**: The ground elevation for each well is added as a **static feature**, allowing the model to learn location-specific patterns.
+- **Volatility Metrics**: To capture sudden changes—a key indicator of external events—the following are calculated:
+    - **Rate of Change (EC\_RoC)**: The difference in EC from the previous hour.
+    - **Rolling Standard Deviation (EC\_Std6H)**: The EC's standard deviation over a 6-hour window.
+
+### Final Output File
+- **`Changwon_Preprocessed_with_Features.csv`**: The final, model-ready dataset (**32,673 rows × 22 cols**).
+
+---
+
+## AI Modeling
+The cleaned and feature-engineered dataset is used to train a predictive LSTM model.
+
+- **Model Code**: `UQML_Changwon/CODE/Models/LSTM.py`
+- **Key Capabilities**:
+    - **Feature-Mode Switching**: Allows training with different feature sets (e.g., `ec25_only`, `all_features`).
+    - **Early Stopping**: Prevents model overfitting by monitoring validation loss and saving the best-performing model.
+    - **Automated Reporting**: Automatically generates performance metrics, heatmaps, and plots for each training run.
+- **Results**: All model outputs, including predictions and reports, are saved under `Model_Res/LSTM/<feature_mode>/`.
+
+---
+
+## File Organization
+# Changwon Groundwater Quality Analysis & Forecasting
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python" alt="Python Version">
+  <img src="https://img.shields.io/badge/Status-Completed-blue?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge" alt="License: Private">
+</p>
+
+> Spatiotemporal analysis and AI-driven forecasting of groundwater quality in the **Changwon Alluvial Aquifer**. This project focuses on modeling water level, temperature, and electrical conductivity (EC) to understand and predict groundwater dynamics.
+
+This repository contains the complete pipeline for analyzing groundwater dynamics in the Changwon region. We process raw hourly monitoring data, correct sensor errors, handle data gaps through interpolation, and enrich the dataset with geospatial (DEM) and engineered features. The final, cleaned dataset serves as the foundation for building predictive AI models.
+
+---
+
+## Table of Contents
+- [Dataset](#dataset)
+- [Methodology](#methodology)
+- [Monitoring Wells](#monitoring-wells)
+- [Preprocessing & Feature Engineering](#preprocessing--feature-engineering)
+- [AI Modeling](#ai-modeling)
+- [File Organization](#file-organization)
+
+---
+
+## Dataset
+
+The dataset is sourced from the **National Groundwater Information Center (GIMS)** and consists of hourly time-series data from three alluvial wells in Changwon.
+
+- **Primary Variables**:
+    - Water Level (m)
+    - Water Temperature (°C)
+    - Electrical Conductivity (EC, µS/cm)
+- **Data Period**: **2021–2025** (continuous monitoring)
+- **Final Dataset**: **32,673 hourly observations** after cleaning and interpolation.
+
+---
+
+## Methodology
+
+The core of this project is the creation of a **continuous, high-integrity dataset** suitable for time-series modeling. The methodology was evolved from a simple `inner join` to a more robust `outer join` and interpolation approach.
+
+1.  **Data Integration via `Outer Join`**: Datasets from the three wells are merged using an `outer join` on the `timestamp`. This creates a complete time index that preserves every observation from all wells, preventing data loss.
+
+2.  **Error Correction & Linear Interpolation**:
+    - **Error Identification**: Non-physical values (e.g., `EC = 0`) are identified as sensor errors and explicitly marked as missing data (`NaN`).
+    - **Interpolation**: All missing data points—both from the outer join and the identified errors—are filled using **Linear Interpolation**. This method is chosen for its scientific validity in representing the gradual changes typical of groundwater systems.
+
+3.  **Reproducibility**: The entire preprocessing pipeline is codified in `UQML_Changwon/CODE/Get_Data/FIN_DATA_IMP.py`, ensuring a fully reproducible workflow from raw data to the final model-ready dataset.
+
+---
+
+## Monitoring Wells
+
+Three key alluvial wells in Changwon provide the data for this study:
+
+| No. | Well Name | Aquifer Type | Role in Analysis | Ground Elevation (m) |
+|:---:|:---|:---|:---|:---:|
+| 1 | **Seongsan** | Alluvial | Regional representative well | 20.57 |
+| 2 | **Sinchon** | Alluvial | Boundary monitoring | 7.84 |
+| 3 | **Cheonseon** | Alluvial | Event-sensitive observation | 48.03 |
+
+---
+
+## Preprocessing & Feature Engineering
+
+The raw data is transformed into a feature-rich dataset ready for advanced modeling.
+
+### Preprocessing Pipeline
+The `FIN_DATA_IMP.py` script automates the following:
+1.  **Loads** raw CSV files from `UQML_Changwon/DATA_SET/RAW_DATA/`.
+2.  **Merges** the data using an outer join and converts `0` values to `NaN`.
+3.  **Reindexes** the data to a perfect hourly frequency.
+4.  **Applies linear interpolation** to fill all gaps.
+5.  **Executes feature engineering** steps and saves the final dataset.
+
+### Engineered Features
+To enhance the model's predictive power, several key features were engineered:
+
+- **Temperature-Corrected EC (EC25)**: Raw EC is normalized to 25°C to remove temperature bias, providing a more stable indicator of water quality.
+- **DEM-Derived Elevation**: The ground elevation for each well is added as a **static feature**, allowing the model to learn location-specific patterns.
+- **Volatility Metrics**: To capture sudden changes—a key indicator of external events—the following are calculated:
+    - **Rate of Change (EC\_RoC)**: The difference in EC from the previous hour.
+    - **Rolling Standard Deviation (EC\_Std6H)**: The EC's standard deviation over a 6-hour window.
+
+### Final Output File
+- **`Changwon_Preprocessed_with_Features.csv`**: The final, model-ready dataset (**32,673 rows × 22 cols**).
+
+---
+
+## AI Modeling
+The cleaned and feature-engineered dataset is used to train a predictive LSTM model.
+
+- **Model Code**: `UQML_Changwon/CODE/Models/LSTM.py`
+- **Key Capabilities**:
+    - **Feature-Mode Switching**: Allows training with different feature sets (e.g., `ec25_only`, `all_features`).
+    - **Early Stopping**: Prevents model overfitting by monitoring validation loss and saving the best-performing model.
+    - **Automated Reporting**: Automatically generates performance metrics, heatmaps, and plots for each training run.
+- **Results**: All model outputs, including predictions and reports, are saved under `Model_Res/LSTM/<feature_mode>/`.
+
+---
+
+## File Organization
+.
+├── Model_Res
+│   └── LSTM
+│       └── ... (AI model results are saved here)
+│
+├── UQML_Changwon
+│   ├── CODE
+│   │   ├── Get_Data
+│   │   │   └── FIN_DATA_IMP.py  (Final Preprocessing Script)
+│   │   └── Models
+│   │       └── LSTM.py          (LSTM Model Training Script)
+│   │
+│   └── DATA_SET
+│       ├── FINAL_DATA
+│       │   └── Changwon_Preprocessed_with_Features.csv (MODEL-READY DATA)
+│       │
+│       ├── RAW_DATA
+│       │   ├── Changwon_Cheonseon_Alluvial.csv
+│       │   ├── Changwon_Seongsan_Alluvial.csv
+│       │   └── Changwon_Sinchon_Alluvial.csv
+│       │
+│       └── SITE_ELEVATIONS
+│           └── Changwon_site_elevations.csv
+│
+└── ... (Other project folders)
