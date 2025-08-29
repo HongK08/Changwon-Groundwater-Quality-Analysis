@@ -100,6 +100,8 @@ The cleaned and feature-engineered dataset is used to train a predictive LSTM mo
 ---
 
 ## File Organization
+
+```bash
 .
 ├── Model_Res
 │   └── LSTM
