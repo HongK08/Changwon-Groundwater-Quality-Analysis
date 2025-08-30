@@ -6,96 +6,82 @@
   <img src="https://img.shields.io/badge/License-Private-lightgrey?style=for-the-badge" alt="License: Private">
 </p>
 
-> Spatiotemporal analysis and AI-driven forecasting of groundwater quality in the **Changwon Alluvial Aquifer**. This project focuses on modeling water level, temperature, and electrical conductivity (EC) to understand and predict groundwater dynamics.
+> Spatiotemporal analysis and AI-driven forecasting of groundwater quality in the **Changwon Alluvial Aquifer**. This project systematically evaluates multiple deep learning architectures and feature sets to build the most accurate predictive model for groundwater dynamics.
 
-This repository contains the complete pipeline for analyzing groundwater dynamics in the Changwon region. We process raw hourly monitoring data, correct sensor errors, handle data gaps through interpolation, and enrich the dataset with geospatial (DEM) and engineered features. The final, cleaned dataset serves as the foundation for building predictive AI models.
+This repository contains a complete, iterative pipeline for analyzing and forecasting groundwater quality in the Changwon region. We process raw hourly monitoring data, correct sensor errors, handle data gaps via interpolation, and conduct a series of controlled experiments to identify the optimal model and feature combination.
 
 ---
 
 ## Table of Contents
 - [Dataset](#dataset)
 - [Methodology](#methodology)
-- [Monitoring Wells](#monitoring-wells)
-- [Preprocessing & Feature Engineering](#preprocessing--feature-engineering)
-- [AI Modeling](#ai-modeling)
+- [Experimental Results](#experimental-results)
+- [Key Findings & Conclusion](#key-findings--conclusion)
+- [Final Model Recommendation](#final-model-recommendation)
 - [File Organization](#file-organization)
 
 ---
 
 ## Dataset
 
-The dataset is sourced from the **National Groundwater Information Center (GIMS)** and consists of hourly time-series data from three alluvial wells in Changwon.
-
-- **Primary Variables**:
-    - Water Level (m)
-    - Water Temperature (°C)
-    - Electrical Conductivity (EC, µS/cm)
-- **Data Period**: **2021–2025** (continuous monitoring)
-- **Final Dataset**: **32,673 hourly observations** after cleaning and interpolation.
+The dataset is sourced from the **National Groundwater Information Center (GIMS)** and consists of hourly time-series data from three alluvial wells in Changwon (Seongsan, Sinchon, Cheonseon) for the period **2021–2025**. After preprocessing, the final dataset contains **32,673 continuous hourly observations**.
 
 ---
 
 ## Methodology
 
-The core of this project is the creation of a **continuous, high-integrity dataset** suitable for time-series modeling. The methodology was evolved from a simple `inner join` to a more robust `outer join` and interpolation approach.
+Our analysis follows a rigorous, multi-stage experimental design to ensure robust and reproducible results.
 
-1.  **Data Integration via `Outer Join`**: Datasets from the three wells are merged using an `outer join` on the `timestamp`. This creates a complete time index that preserves every observation from all wells, preventing data loss.
+1.  **Preprocessing**: Raw data from three wells was merged using an `outer join` to create a complete time index. Identified sensor errors (`EC=0`) and gaps were filled using **Linear Interpolation**, creating a continuous, high-integrity dataset suitable for time-series modeling.
 
-2.  **Error Correction & Linear Interpolation**:
-    - **Error Identification**: Non-physical values (e.g., `EC = 0`) are identified as sensor errors and explicitly marked as missing data (`NaN`).
-    - **Interpolation**: All missing data points—both from the outer join and the identified errors—are filled using **Linear Interpolation**. This method is chosen for its scientific validity in representing the gradual changes typical of groundwater systems.
+2.  **Feature Engineering**: A rich set of features was engineered to provide the models with comprehensive information:
+    - **Core Features**: Water Level, Water Temperature.
+    - **Target-related Features**: Raw `EC` and temperature-corrected `EC25`.
+    - **Static Features**: DEM-derived ground `Elevation` for each well.
+    - **Volatility Features**: Rate of Change (`EC_RoC`) and 6-hour Rolling Standard Deviation (`EC_Std6H`).
+    - **Lag Features**: Past `EC25` values from 24h, 168h (weekly), and 720h (monthly) ago.
 
-3.  **Reproducibility**: The entire preprocessing pipeline is codified in `UQML_Changwon/CODE/Get_Data/FIN_DATA_IMP.py`, ensuring a fully reproducible workflow from raw data to the final model-ready dataset.
+3.  **Model Architectures**: Two primary architectures were evaluated:
+    - **Vanilla LSTM**: A standard LSTM network serving as a strong baseline.
+    - **LSTM with Attention**: An enhanced architecture designed to focus on the most relevant past time steps, especially for long-term forecasting.
+    - Both models were trained with regularization (Dropout, Weight Decay) and Early Stopping to prevent overfitting.
 
----
-
-## Monitoring Wells
-
-Three key alluvial wells in Changwon provide the data for this study:
-
-| No. | Well Name | Aquifer Type | Role in Analysis | Ground Elevation (m) |
-|:---:|:---|:---|:---|:---:|
-| 1 | **Seongsan** | Alluvial | Regional representative well | 20.57 |
-| 2 | **Sinchon** | Alluvial | Boundary monitoring | 7.84 |
-| 3 | **Cheonseon** | Alluvial | Event-sensitive observation | 48.03 |
-
----
-
-## Preprocessing & Feature Engineering
-
-The raw data is transformed into a feature-rich dataset ready for advanced modeling.
-
-### Preprocessing Pipeline
-The `FIN_DATA_IMP.py` script automates the following:
-1.  **Loads** raw CSV files from `UQML_Changwon/DATA_SET/RAW_DATA/`.
-2.  **Merges** the data using an outer join and converts `0` values to `NaN`.
-3.  **Reindexes** the data to a perfect hourly frequency.
-4.  **Applies linear interpolation** to fill all gaps.
-5.  **Executes feature engineering** steps and saves the final dataset.
-
-### Engineered Features
-To enhance the model's predictive power, several key features were engineered:
-
-- **Temperature-Corrected EC (EC25)**: Raw EC is normalized to 25°C to remove temperature bias, providing a more stable indicator of water quality.
-- **DEM-Derived Elevation**: The ground elevation for each well is added as a **static feature**, allowing the model to learn location-specific patterns.
-- **Volatility Metrics**: To capture sudden changes—a key indicator of external events—the following are calculated:
-    - **Rate of Change (EC\_RoC)**: The difference in EC from the previous hour.
-    - **Rolling Standard Deviation (EC\_Std6H)**: The EC's standard deviation over a 6-hour window.
-
-### Final Output File
-- **`Changwon_Preprocessed_with_Features.csv`**: The final, model-ready dataset (**32,673 rows × 22 cols**).
+4.  **Controlled Experiments**: We conducted three main experiments by training the models on different feature sets to determine the optimal combination:
+    - **`all_features`**: Uses all engineered features.
+    - **`ec25_only`**: Uses a minimal set of core features + `EC25` and its LAGs.
+    - **`ec_only`**: Uses a minimal set of core features + raw `EC` and its LAGs.
 
 ---
 
-## AI Modeling
-The cleaned and feature-engineered dataset is used to train a predictive LSTM model.
+## Experimental Results
 
-- **Model Code**: `UQML_Changwon/CODE/Models/LSTM.py`
-- **Key Capabilities**:
-    - **Feature-Mode Switching**: Allows training with different feature sets (e.g., `ec25_only`, `all_features`).
-    - **Early Stopping**: Prevents model overfitting by monitoring validation loss and saving the best-performing model.
-    - **Automated Reporting**: Automatically generates performance metrics, heatmaps, and plots for each training run.
-- **Results**: All model outputs, including predictions and reports, are saved under `Model_Res/LSTM/<feature_mode>/`.
+The following table summarizes the performance (R² score) of the best model architecture (**LSTM with Attention + LAGs**) across the three feature set experiments for the 90-day forecast horizon (t+90).
+
+| Monitoring Well | `all_features` (R²) | **`ec25_only` (R²) 🏆** | `ec_only` (R²) |
+|:---:|:---:|:---:|:---:|
+| **Cheonseon** | 0.941 | **0.942** | 0.941 |
+| **Sinchon** | 0.670 | **0.705** | 0.664 |
+| **Seongsan** | -0.409 | -0.836 | **-0.381** |
+
+---
+
+## Key Findings & Conclusion
+
+Our systematic experiments led to several critical insights:
+
+1.  **The "Less is More" Principle for Features**: The **`ec25_only`** feature set consistently outperformed the `all_features` set, especially for the Attention model. This indicates that additional features like water level and volatility acted as noise, confusing the model. The most effective approach was to provide the model with only the most crucial, high-signal information: temperature-corrected `EC25` and its past (`LAG`) values.
+
+2.  **Attention + LAG is the Winning Combination**: The **LSTM with Attention** model, when combined with **LAG features**, proved to be the most powerful architecture. While the base Attention model struggled with overfitting, providing it with explicit LAG features allowed its "focusing" ability to shine, resulting in the highest accuracy for predictable sites (Sinchon and Cheonseon).
+
+3.  **The Seongsan Anomaly - A Data Limitation Problem**: Across all experiments, **no model was able to successfully predict the long-term water quality for the Seongsan site**. The consistent failure, regardless of model complexity or feature set, strongly suggests this is a **data limitation problem**, not a modeling failure. The dynamics at Seongsan are likely driven by complex, external factors (e.g., irregular rainfall events, undocumented pumping, land-use changes) that are not present in the current dataset. This finding itself is a significant outcome of the research.
+
+---
+
+## Final Model Recommendation
+
+-   For **Sinchon and Cheonseon**, the **`LSTMAttentionModel`** trained on the **`ec25_only` feature set with LAGs** is the definitive choice, delivering highly accurate and reliable forecasts (R² > 0.70).
+
+-   For **Seongsan**, a different approach is required. Future work should focus on **incorporating external data** (especially rainfall data) or shifting the problem from forecasting to **anomaly detection** to identify when external events are impacting the system.
 
 ---
 
@@ -105,14 +91,22 @@ The cleaned and feature-engineered dataset is used to train a predictive LSTM mo
 .
 ├── Model_Res
 │   └── LSTM
-│       └── ... (AI model results are saved here)
+│       ├── all_features
+│       │   ├── lstm_lag/
+│       │   └── attention_lag/
+│       ├── ec25_only
+│       │   ├── lstm_lag/
+│       │   └── attention_lag/
+│       └── ec_only
+│           ├── lstm_lag/
+│           └── attention_lag/
 │
 ├── UQML_Changwon
 │   ├── CODE
 │   │   ├── Get_Data
-│   │   │   └── FIN_DATA_IMP.py  (Final Preprocessing Script)
+│   │   │   └── FIN_DATA_IMP.py           (Final Preprocessing Script)
 │   │   └── Models
-│   │       └── LSTM.py          (LSTM Model Training Script)
+│   │       └── run_all_models_final.py   (Final Training/Experiment Script)
 │   │
 │   └── DATA_SET
 │       ├── FINAL_DATA
